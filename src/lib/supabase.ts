@@ -62,6 +62,21 @@ export async function findVenueByName(nom: string): Promise<VenueRow | null> {
   return data ?? null;
 }
 
+export async function findVenueByCity(city: string): Promise<VenueRow[]> {
+  const supabase = ensureClient();
+  const { data, error } = await supabase
+    .from('venues')
+    .select('*')
+    .ilike('city', city);
+
+  if (error) {
+    logger.error({ err: error, city }, 'Supabase findVenueByCity failed');
+    throw error;
+  }
+
+  return data ?? [];
+}
+
 export async function insertVenue(payload: VenuePayload): Promise<void> {
   const supabase = ensureClient();
   const { error } = await supabase.from('venues').insert(payload);

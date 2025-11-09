@@ -11,7 +11,7 @@ export interface InputRecord {
   postcode?: string;
 }
 
-export type GeocodeStatus = 'ok' | 'ambiguous' | 'error';
+export type GeocodeStatus = 'ok' | 'error';
 
 export interface GeocodedEntry {
   input: InputRecord;
@@ -31,11 +31,9 @@ export interface GeocodeOptions {
 
 export interface GeocodeSummary {
   geocoded: GeocodedEntry[];
-  ambiguous: GeocodedEntry[];
   errors: GeocodedEntry[];
   stats: {
     total: number;
-    ambiguous: number;
     errors: number;
     apiCalls: number;
     fromCache: number;
@@ -47,7 +45,6 @@ interface ProcessedRow {
   fromCache: boolean;
   apiCall: boolean;
   isError: boolean;
-  isAmbiguous: boolean;
 }
 
 function normalizeKey(s: string) {
@@ -141,7 +138,7 @@ export async function geocodeFile(options: GeocodeOptions): Promise<GeocodeSumma
         status: 'error',
         reason: 'missing_fields',
       };
-      return { entry, fromCache: false, apiCall: false, isError: true, isAmbiguous: false };
+      return { entry, fromCache: false, apiCall: false, isError: true };
     }
 
     try {
@@ -149,28 +146,25 @@ export async function geocodeFile(options: GeocodeOptions): Promise<GeocodeSumma
       console.log('[Geocode] Geocoding input', input);
       const { feature, fromCache: cached } = await client.geocode(input.adresse, input.ville, input.postcode);
       if (!feature) {
-        const entry: GeocodedEntry = { input, feature: null, status: 'ambiguous', reason: 'no_result' };
+        const entry: GeocodedEntry = { input, feature: null, status: 'error', reason: 'no_result' };
         logger.info({ input }, 'No BAN result for row');
         console.log('[Geocode] No BAN result for', input);
-        return { entry, fromCache: cached, apiCall: !cached, isAmbiguous: true, isError: false };
-      }
-
-      if (feature.properties.score < minScore) {
-        const entry: GeocodedEntry = { input, feature, status: 'ambiguous', reason: 'low_score' };
-        logger.info({ input, score: feature.properties.score }, 'BAN score below threshold');
-        console.log('[Geocode] BAN score below threshold', { input, score: feature.properties.score });
-        return { entry, fromCache: cached, apiCall: !cached, isAmbiguous: true, isError: false };
+        return { entry, fromCache: cached, apiCall: !cached, isError: true };
       }
 
       const entry: GeocodedEntry = { input, feature, status: 'ok' };
       logger.debug({ input, score: feature.properties.score }, 'Geocoding successful');
       console.log('[Geocode] Geocoding successful', { input, score: feature.properties.score });
-      return { entry, fromCache: cached, apiCall: !cached, isAmbiguous: false, isError: false };
+      if (feature.properties.score < minScore) {
+        logger.warn({ input, score: feature.properties.score }, 'BAN score below threshold but accepted');
+        console.log('[Geocode] BAN score below threshold but accepted', { input, score: feature.properties.score });
+      }
+      return { entry, fromCache: cached, apiCall: !cached, isError: false };
     } catch (error) {
       logger.error({ err: error, input }, 'Geocoding failed');
       console.log('[Geocode] Geocoding failed', error);
       const entry: GeocodedEntry = { input, feature: null, status: 'error', reason: 'exception' };
-      return { entry, fromCache: false, apiCall: false, isAmbiguous: false, isError: true };
+      return { entry, fromCache: false, apiCall: false, isError: true };
     }
   };
 
@@ -184,7 +178,6 @@ export async function geocodeFile(options: GeocodeOptions): Promise<GeocodeSumma
   const results = await Promise.all(promises);
 
   const geocoded: GeocodedEntry[] = [];
-  const ambiguous: GeocodedEntry[] = [];
   const errors: GeocodedEntry[] = [];
 
   let apiCalls = 0;
@@ -192,9 +185,6 @@ export async function geocodeFile(options: GeocodeOptions): Promise<GeocodeSumma
 
   for (const result of results) {
     geocoded.push(result.entry);
-    if (result.isAmbiguous) {
-      ambiguous.push(result.entry);
-    }
     if (result.isError) {
       errors.push(result.entry);
     }
@@ -209,7 +199,6 @@ export async function geocodeFile(options: GeocodeOptions): Promise<GeocodeSumma
   logger.info(
     {
       total,
-      ambiguous: ambiguous.length,
       errors: errors.length,
       apiCalls,
       fromCache: fromCacheCount,
@@ -218,7 +207,6 @@ export async function geocodeFile(options: GeocodeOptions): Promise<GeocodeSumma
   );
   console.log('[Geocode] Finished batch', {
     total,
-    ambiguous: ambiguous.length,
     errors: errors.length,
     apiCalls,
     fromCache: fromCacheCount,
@@ -226,11 +214,9 @@ export async function geocodeFile(options: GeocodeOptions): Promise<GeocodeSumma
 
   return {
     geocoded,
-    ambiguous,
     errors,
     stats: {
       total,
-      ambiguous: ambiguous.length,
       errors: errors.length,
       apiCalls,
       fromCache: fromCacheCount,

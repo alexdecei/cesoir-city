@@ -3,10 +3,8 @@ import path from 'path';
 import { Command } from 'commander';
 import * as dotenv from 'dotenv';
 import cliProgress from 'cli-progress';
-import { geocodeFile, GeocodedEntry } from './geocode.js';
-import { writeCsv } from './lib/csv.js';
+import { geocodeFile } from './geocode.js';
 import { logger } from './lib/logger.js';
-import { roundCoord } from './lib/normalize.js';
 import { processUpserts } from './upsert.js';
 
 dotenv.config();
@@ -31,21 +29,6 @@ function createReportPath(outDir: string, fileName: string): string {
 
 async function writeReport(filePath: string, data: unknown): Promise<void> {
   await fs.writeFile(filePath, JSON.stringify(data, null, 2), 'utf8');
-}
-
-function buildAmbiguousRecords(entries: GeocodedEntry[]): Record<string, unknown>[] {
-  return entries.map((entry) => ({
-    nom: entry.input.nom,
-    adresse_input: entry.input.adresse,
-    ville_input: entry.input.ville,
-    postcode_input: entry.input.postcode ?? '',
-    status: entry.status,
-    reason: entry.reason ?? '',
-    score: entry.feature?.properties.score ?? '',
-    label: entry.feature?.properties.label ?? '',
-    latitude: entry.feature ? roundCoord(entry.feature.geometry.coordinates[1]) : '',
-    longitude: entry.feature ? roundCoord(entry.feature.geometry.coordinates[0]) : '',
-  }));
 }
 
 async function runGeocodeCommand(input: string, options: { continue: boolean; out?: string; scoreMin?: string; concurrency?: string }): Promise<void> {
@@ -96,33 +79,18 @@ async function runGeocodeCommand(input: string, options: { continue: boolean; ou
     progressBar.stop();
   }
 
-  const ambiguousRecords = buildAmbiguousRecords([...summary.ambiguous, ...summary.errors]);
-  const ambiguousPath = createReportPath(outDir, 'ambiguous.csv');
-  await writeCsv(ambiguousPath, ambiguousRecords, [
-    'nom',
-    'adresse_input',
-    'ville_input',
-    'postcode_input',
-    'status',
-    'reason',
-    'score',
-    'label',
-    'latitude',
-    'longitude',
-  ]);
-
   const reportPath = createReportPath(outDir, 'report.json');
   const report = {
     mode: 'geocode',
     input,
     total: summary.stats.total,
-    ambiguous: summary.stats.ambiguous,
     errors: summary.stats.errors,
     apiCalls: summary.stats.apiCalls,
     fromCache: summary.stats.fromCache,
     inserted: 0,
     updated: 0,
     conflicts: 0,
+    duplicates: 0,
     dryRun: true,
     timestamp: new Date().toISOString(),
   };
@@ -131,7 +99,6 @@ async function runGeocodeCommand(input: string, options: { continue: boolean; ou
   logger.info({
     input,
     total: summary.stats.total,
-    ambiguous: summary.stats.ambiguous,
     errors: summary.stats.errors,
     apiCalls: summary.stats.apiCalls,
     fromCache: summary.stats.fromCache,
@@ -187,28 +154,15 @@ async function runUpsertCommand(input: string, options: { dryRun?: boolean; cont
     progressBar.stop();
   }
 
-  const ambiguousRecords = buildAmbiguousRecords([...summary.ambiguous, ...summary.errors]);
-  const ambiguousPath = createReportPath(outDir, 'ambiguous.csv');
-  await writeCsv(ambiguousPath, ambiguousRecords, [
-    'nom',
-    'adresse_input',
-    'ville_input',
-    'postcode_input',
-    'status',
-    'reason',
-    'score',
-    'label',
-    'latitude',
-    'longitude',
-  ]);
-
   const upsertCsvPath = createReportPath(outDir, 'upserts.csv');
   const conflictCsvPath = createReportPath(outDir, 'conflicts.csv');
+  const duplicatesCsvPath = createReportPath(outDir, 'duplicates.csv');
 
   const upsertReport = await processUpserts(summary.geocoded, {
     dryRun: options.dryRun ?? false,
     upsertCsvPath,
     conflictCsvPath,
+    duplicateCsvPath: duplicatesCsvPath,
   });
 
   const reportPath = createReportPath(outDir, 'report.json');
@@ -216,13 +170,13 @@ async function runUpsertCommand(input: string, options: { dryRun?: boolean; cont
     mode: 'run',
     input,
     total: summary.stats.total,
-    ambiguous: summary.stats.ambiguous,
     errors: summary.stats.errors,
     apiCalls: summary.stats.apiCalls,
     fromCache: summary.stats.fromCache,
     inserted: upsertReport.inserted,
     updated: upsertReport.updated,
     conflicts: upsertReport.conflicts,
+    duplicates: upsertReport.duplicates,
     errorsDuringUpsert: upsertReport.errors,
     dryRun: options.dryRun ?? false,
     timestamp: new Date().toISOString(),
@@ -236,8 +190,8 @@ async function runUpsertCommand(input: string, options: { dryRun?: boolean; cont
     inserted: upsertReport.inserted,
     updated: upsertReport.updated,
     conflicts: upsertReport.conflicts,
-    ambiguous: summary.stats.ambiguous,
     errors: summary.stats.errors,
+    duplicates: upsertReport.duplicates,
   }, 'Upsert completed');
 }
 

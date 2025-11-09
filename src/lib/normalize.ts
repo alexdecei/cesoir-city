@@ -45,6 +45,25 @@ export function levenshtein(a: string, b: string): number {
   return matrix[b.length][a.length];
 }
 
+export function isSimilarName(a: string, b: string): boolean {
+  const normA = normalizeString(a);
+  const normB = normalizeString(b);
+
+  if (!normA || !normB) {
+    return false;
+  }
+
+  if (normA === normB) {
+    return true;
+  }
+
+  if (normA.includes(normB) || normB.includes(normA)) {
+    return true;
+  }
+
+  return levenshtein(normA, normB) <= 2;
+}
+
 export interface AddressContext {
   existingCity?: string | null;
   candidateCity?: string | null;
