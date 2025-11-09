@@ -63,24 +63,55 @@ async function fetchWithRetry(url: string, attempt = 0, maxAttempts = 3, timeout
   const timeout = setTimeout(() => controller.abort(), timeoutMs);
 
   try {
+    logger.info({ url, attempt }, 'Sending BAN request');
+    console.log(`[BAN] Request attempt ${attempt + 1}/${maxAttempts}: ${url}`);
     const response = await fetch(url, { signal: controller.signal });
 
     if (!response.ok) {
+      let bodyText: string | undefined;
+      try {
+        bodyText = await response.text();
+      } catch (bodyError) {
+        logger.debug({ err: bodyError }, 'Unable to read BAN error body');
+      }
+
+      logger.warn({ url, status: response.status, body: bodyText }, 'BAN request returned non-OK status');
+      console.log(`[BAN] Non-OK response (${response.status}) for ${url}`);
+      if (bodyText) {
+        console.log(`[BAN] Response body: ${bodyText}`);
+      }
+
       if ((response.status >= 500 || response.status === 429) && attempt < maxAttempts - 1) {
         const delay = 2 ** attempt * 200;
         await sleep(delay);
+        console.log(`[BAN] Retrying after ${delay}ms for ${url}`);
         return fetchWithRetry(url, attempt + 1, maxAttempts, timeoutMs);
       }
-      throw new Error(`BAN request failed with status ${response.status}`);
+      const error = new Error(`BAN request failed with status ${response.status}`);
+      (error as Error & { responseBody?: string }).responseBody = bodyText;
+      throw error;
     }
 
-    return (await response.json()) as BanResponse;
+    const json = (await response.json()) as Partial<BanResponse> & { error?: unknown };
+    console.log(`[BAN] Successful response for ${url}`);
+
+    if (!json || !Array.isArray(json.features)) {
+      logger.error({ url, response: json }, 'Unexpected BAN response shape');
+      console.log(`[BAN] Invalid response shape for ${url}`);
+      throw new Error('Invalid BAN response: missing features array');
+    }
+
+    return json as BanResponse;
   } catch (error) {
     if (attempt < maxAttempts - 1) {
       const delay = 2 ** attempt * 200;
       await sleep(delay);
+      logger.debug({ url, attempt, delay }, 'Retrying BAN request');
+      console.log(`[BAN] Error on attempt ${attempt + 1} for ${url}, retrying in ${delay}ms`);
       return fetchWithRetry(url, attempt + 1, maxAttempts, timeoutMs);
     }
+    logger.error({ url, err: error }, 'BAN request failed after retries');
+    console.log(`[BAN] Request failed after ${maxAttempts} attempts for ${url}`);
     throw error;
   } finally {
     clearTimeout(timeout);
@@ -144,19 +175,36 @@ export class BanClient {
 
     if (this.cache.has(key)) {
       const cached = this.cache.get(key)!;
+      logger.debug({ key }, 'BAN cache hit');
       return { feature: cached.feature, fromCache: true };
     }
 
-    const queryParts = [`${adresse} ${ville}`.trim()];
-    const params = new URLSearchParams({ q: queryParts.join(' '), limit: '1' });
+    const query = [adresse, ville].filter(Boolean).join(' ').trim();
+    if (!query) {
+      logger.warn({ adresse, ville }, 'Cannot geocode entry with empty query');
+      return { feature: null, fromCache: false };
+    }
+
+    const params = new URLSearchParams({ q: query, limit: '1' });
     if (postcode) {
       params.set('postcode', postcode);
     }
 
     const url = `${BAN_BASE_URL}?${params.toString()}`;
 
+    console.log(`[BAN] Final request URL: ${url}`);
     const response = await this.limit(() => fetchWithRetry(url));
     const feature = response.features[0] ?? null;
+
+    if (!feature) {
+      logger.info({ key, url }, 'BAN returned no feature');
+      console.log(`[BAN] No feature returned for ${url}`);
+    } else {
+      logger.debug({ key, url, score: feature.properties.score }, 'BAN returned feature');
+      console.log(
+        `[BAN] Feature returned for ${url} with score ${feature.properties.score} and label ${feature.properties.label}`,
+      );
+    }
 
     const record: CacheRecord = {
       key,
