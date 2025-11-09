@@ -61,18 +61,6 @@ async function runGeocodeCommand(input: string, options: { continue: boolean; ou
   const concurrency = getNumber(options.concurrency, getNumber(process.env.GEOCODE_CONCURRENCY, 5));
   const minScore = getNumber(options.scoreMin, getNumber(process.env.GEOCODE_SCORE_MIN, 0.8));
 
-  logger.info(
-    {
-      input,
-      outDir,
-      cachePath,
-      concurrency,
-      minScore,
-      reuseCache: options.continue,
-    },
-    'Running geocode command',
-  );
-
   const progressBar = new cliProgress.SingleBar({ clearOnComplete: true }, cliProgress.Presets.shades_classic);
   let progressStarted = false;
 
@@ -150,19 +138,6 @@ async function runUpsertCommand(input: string, options: { dryRun?: boolean; cont
 
   const concurrency = getNumber(options.concurrency, getNumber(process.env.GEOCODE_CONCURRENCY, 5));
   const minScore = getNumber(options.scoreMin, getNumber(process.env.GEOCODE_SCORE_MIN, 0.8));
-
-  logger.info(
-    {
-      input,
-      outDir,
-      cachePath,
-      concurrency,
-      minScore,
-      reuseCache: options.continue ?? false,
-      dryRun: options.dryRun ?? false,
-    },
-    'Running upsert command',
-  );
 
   const progressBar = new cliProgress.SingleBar({ clearOnComplete: true }, cliProgress.Presets.shades_classic);
   let progressStarted = false;

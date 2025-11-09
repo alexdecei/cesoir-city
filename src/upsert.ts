@@ -6,7 +6,7 @@ import { GeocodedEntry } from './geocode.js';
 
 export type UpsertAction = 'insert' | 'update' | 'conflict' | 'error';
 
-export interface UpsertRecord extends Record<string, unknown> {
+export interface UpsertRecord {
   action: UpsertAction;
   nom: string;
   adresse: string;
@@ -16,7 +16,7 @@ export interface UpsertRecord extends Record<string, unknown> {
   reason?: string;
 }
 
-export interface ConflictRecord extends Record<string, unknown> {
+export interface ConflictRecord {
   nom: string;
   existingAdresse: string;
   existingCity: string;

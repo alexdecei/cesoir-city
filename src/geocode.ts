@@ -84,12 +84,9 @@ export async function geocodeFile(options: GeocodeOptions): Promise<GeocodeSumma
   const total = parsed.length;
   let processedCount = 0;
 
-  logger.info({ input: absoluteInput, total }, 'Starting geocoding batch');
-
   const processRow = async (row: Record<string, string>): Promise<ProcessedRow> => {
     const input = validateRecord(row);
     if (!input) {
-      logger.warn({ row }, 'Skipping row with missing mandatory fields');
       const entry: GeocodedEntry = {
         input: {
           nom: row.nom ?? '',
@@ -105,22 +102,18 @@ export async function geocodeFile(options: GeocodeOptions): Promise<GeocodeSumma
     }
 
     try {
-      logger.debug({ input }, 'Geocoding input row');
       const { feature, fromCache: cached } = await client.geocode(input.adresse, input.ville, input.postcode);
       if (!feature) {
         const entry: GeocodedEntry = { input, feature: null, status: 'ambiguous', reason: 'no_result' };
-        logger.info({ input }, 'No BAN result for row');
         return { entry, fromCache: cached, apiCall: !cached, isAmbiguous: true, isError: false };
       }
 
       if (feature.properties.score < minScore) {
         const entry: GeocodedEntry = { input, feature, status: 'ambiguous', reason: 'low_score' };
-        logger.info({ input, score: feature.properties.score }, 'BAN score below threshold');
         return { entry, fromCache: cached, apiCall: !cached, isAmbiguous: true, isError: false };
       }
 
       const entry: GeocodedEntry = { input, feature, status: 'ok' };
-      logger.debug({ input, score: feature.properties.score }, 'Geocoding successful');
       return { entry, fromCache: cached, apiCall: !cached, isAmbiguous: false, isError: false };
     } catch (error) {
       logger.error({ err: error, input }, 'Geocoding failed');
@@ -160,17 +153,6 @@ export async function geocodeFile(options: GeocodeOptions): Promise<GeocodeSumma
       fromCacheCount += 1;
     }
   }
-
-  logger.info(
-    {
-      total,
-      ambiguous: ambiguous.length,
-      errors: errors.length,
-      apiCalls,
-      fromCache: fromCacheCount,
-    },
-    'Finished geocoding batch',
-  );
 
   return {
     geocoded,
