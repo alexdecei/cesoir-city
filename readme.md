@@ -39,7 +39,7 @@ A sample file is available in `scripts/sample.csv`.
 ### Geocode only
 
 ```bash
-npm run geocode -- path/to/input.csv [--continue] [--out ./outdir]
+npm run geocode -- scripts/input.csv [--continue] [--out ./outdir]
 ```
 
 - Downloads BAN results with throttling, retry, timeout and caching
