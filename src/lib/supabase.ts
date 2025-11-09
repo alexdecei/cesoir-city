@@ -11,6 +11,9 @@ export interface VenueRow {
   barbars: boolean | null;
 }
 
+const DEFAULT_IMAGE_URL =
+  'https://xpsfgrgjltswsnccuujv.supabase.co/storage/v1/object/public/event-covers/bar_defaut.jpg';
+
 export interface VenuePayload {
   nom: string;
   adresse: string;
@@ -18,6 +21,7 @@ export interface VenuePayload {
   latitude: number;
   longitude: number;
   barbars: boolean;
+  image_url?: string;
 }
 
 let client: SupabaseClient | null = null;
@@ -79,7 +83,9 @@ export async function findVenueByCity(city: string): Promise<VenueRow[]> {
 
 export async function insertVenue(payload: VenuePayload): Promise<void> {
   const supabase = ensureClient();
-  const { error } = await supabase.from('venues').insert(payload);
+  const { error } = await supabase
+    .from('venues')
+    .insert({ ...payload, image_url: payload.image_url ?? DEFAULT_IMAGE_URL });
 
   if (error) {
     logger.error({ err: error, nom: payload.nom }, 'Supabase insertVenue failed');
