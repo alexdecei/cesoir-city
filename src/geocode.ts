@@ -50,17 +50,54 @@ interface ProcessedRow {
   isAmbiguous: boolean;
 }
 
-function validateRecord(record: Record<string, string>): InputRecord | null {
-  const nom = record.nom?.trim();
-  const adresse = record.adresse?.trim();
-  const ville = record.ville?.trim();
-  const postcode = record.postcode?.trim() || record.cp?.trim();
+function normalizeKey(s: string) {
+  return s
+    .replace(/^\uFEFF/, '')              // BOM
+    .normalize('NFKD').replace(/[\u0300-\u036f]/g, '') // accents
+    .replace(/\s+/g, ' ')                // espaces multiples
+    .trim()
+    .toLowerCase();
+}
 
-  if (!nom || !adresse || !ville) {
-    return null;
+function hardTrim(v?: string) {
+  if (typeof v !== 'string') return '';
+  // supprime espaces classiques + NBSP + ZWSP & co
+  return v
+    .replace(/[\u200B-\u200D\uFEFF]/g, '') // zero-width/BOM
+    .replace(/\u00A0/g, ' ')               // nbsp -> espace
+    .trim();
+}
+
+function getFirst(record: Record<string, unknown>, candidates: string[]): string {
+  // recherche clé insensible à la casse/accents/espaces
+  const map = new Map<string, string>();
+  for (const k of Object.keys(record)) map.set(normalizeKey(k), k);
+  for (const c of candidates) {
+    const nk = normalizeKey(c);
+    const real = map.get(nk);
+    if (real) return hardTrim(String((record as any)[real] ?? ''));
   }
+  // sinon, essaie une recherche “contient”
+  for (const [nk, real] of map.entries()) {
+    if (candidates.some(c => nk.includes(normalizeKey(c)))) {
+      return hardTrim(String((record as any)[real] ?? ''));
+    }
+  }
+  return '';
+}
 
-  return { nom, adresse, ville, postcode };
+function validateRecord(record: Record<string, any>): InputRecord | null {
+  const nom      = getFirst(record, ['nom', 'name', 'etablissement']);
+  const adresse  = getFirst(record, ['adresse', 'address', 'voie', 'rue']);
+  const ville    = getFirst(record, ['ville', 'commune', 'city']);
+  const postcode = getFirst(record, ['postcode', 'cp', 'code_postal', 'code postal', 'zip']);
+
+  console.log('[validate]', { nom, adresse, ville, postcode, lens: {
+    nom: nom.length, adresse: adresse.length, ville: ville.length
+  }});
+
+  if (!nom || !adresse || !ville) return null;
+  return { nom, adresse, ville, postcode: postcode || undefined };
 }
 
 export async function geocodeFile(options: GeocodeOptions): Promise<GeocodeSummary> {
@@ -88,6 +125,7 @@ export async function geocodeFile(options: GeocodeOptions): Promise<GeocodeSumma
   console.log(`[Geocode] Starting batch for ${absoluteInput} with ${total} rows`);
 
   const processRow = async (row: Record<string, string>): Promise<ProcessedRow> => {
+    
     const input = validateRecord(row);
     if (!input) {
       logger.warn({ row }, 'Skipping row with missing mandatory fields');

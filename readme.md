@@ -51,7 +51,7 @@ Use `--continue` to reuse the existing `geocoded.jsonl` cache (no API calls for 
 ### Geocode + upsert (default)
 
 ```bash
-npm run run -- path/to/input.csv [--dry-run] [--continue] [--out ./outdir]
+npm run run -- scripts/input.csv [--dry-run] [--continue] [--out ./outdir]
 ```
 
 - Executes the same geocoding pass
