@@ -20,7 +20,7 @@ cp .env.example .env
 Optional environment overrides:
 
 - `GEOCODE_CONCURRENCY` – maximum concurrent BAN requests (default `5`)
-- `GEOCODE_SCORE_MIN` – minimum acceptable BAN score (default `0.8`)
+- `GEOCODE_SCORE_MIN` – soft minimum BAN score (default `0.8`, rows below are still accepted but logged)
 
 Outputs are written to `./out` by default (customisable via `--out`).
 
@@ -43,7 +43,7 @@ npm run geocode -- path/to/input.csv [--continue] [--out ./outdir]
 ```
 
 - Downloads BAN results with throttling, retry, timeout and caching
-- Produces `out/geocoded.jsonl`, `out/ambiguous.csv`, `out/report.json`
+- Produces `out/geocoded.jsonl`, `out/report.json`
 - Never writes to Supabase
 
 Use `--continue` to reuse the existing `geocoded.jsonl` cache (no API calls for cached rows).
@@ -56,7 +56,7 @@ npm run run -- path/to/input.csv [--dry-run] [--continue] [--out ./outdir]
 
 - Executes the same geocoding pass
 - Inserts or updates matching venues with `barbars=true`
-- Produces `out/upserts.csv`, `out/conflicts.csv`, `out/ambiguous.csv`, `out/report.json`
+- Produces `out/upserts.csv`, `out/conflicts.csv`, `out/duplicates.csv`, `out/report.json`
 
 Pass `--dry-run` to simulate Supabase writes while still producing the diff reports. No database mutations are performed in dry-run mode.
 
@@ -72,9 +72,9 @@ Both commands accept:
 All command modes emit artefacts inside the selected output directory:
 
 - `geocoded.jsonl` – local cache of BAN responses (used for `--continue`)
-- `ambiguous.csv` – rows requiring manual review (missing fields, no result, low score)
 - `upserts.csv` – summary of insert/update/conflict/error outcomes (only for `run` command)
 - `conflicts.csv` – detected name collisions with different addresses
+- `duplicates.csv` – rows skipped because another venue in the same city already uses the address and a similar name
 - `report.json` – aggregated metrics (API usage, inserts, updates, conflicts, etc.)
 
 ## Error handling & safety features
