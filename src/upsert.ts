@@ -72,7 +72,6 @@ function buildVenuePayload(entry: GeocodedEntry): VenuePayload {
     city,
     latitude: roundCoord(latitude),
     longitude: roundCoord(longitude),
-    barbars: true,
   };
 }
 
@@ -185,7 +184,6 @@ export async function processUpserts(entries: GeocodedEntry[], options: UpsertOp
             city: payload.city,
             latitude: payload.latitude,
             longitude: payload.longitude,
-            barbars: payload.barbars ?? false,
           });
         }
         continue;
@@ -221,7 +219,6 @@ export async function processUpserts(entries: GeocodedEntry[], options: UpsertOp
         city: payload.city,
         latitude: payload.latitude,
         longitude: payload.longitude,
-        barbars: true,
       };
 
       if (!options.dryRun) {
@@ -243,7 +240,6 @@ export async function processUpserts(entries: GeocodedEntry[], options: UpsertOp
         city: updatePayload.city,
         latitude: updatePayload.latitude,
         longitude: updatePayload.longitude,
-        barbars: updatePayload.barbars ?? existing.barbars ?? false,
       });
     } catch (error) {
       errors += 1;

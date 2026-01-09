@@ -8,7 +8,6 @@ export interface VenueRow {
   city: string;
   latitude: number;
   longitude: number;
-  barbars: boolean | null;
   tags?: string[] | null;
   osm_type?: string | null;
   osm_id?: number | null;
@@ -25,7 +24,6 @@ export interface VenuePayload {
   city: string;
   latitude: number;
   longitude: number;
-  barbars?: boolean;
   image_url?: string;
   tags?: string[];
   osm_type?: string;

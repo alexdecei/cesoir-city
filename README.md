@@ -65,7 +65,7 @@ npm run osm:run -- --city "Paris" --country FR --admin-level 8 --out ./outdir [-
 
 - Runs the same Overpass fetch pipeline.
 - Upserts into Supabase by `(osm_type, osm_id)`.
-- Does **not** set `barbars=true` automatically; it only fills OSM identity + location data.
+- Does not set any extra flags; it only fills OSM identity + location data.
 - Produces `out/upserts.csv`, `out/conflicts.csv`, `out/report.json`.
 
 ### OSM filters
@@ -103,7 +103,7 @@ npm run run -- path/to/input.csv [--dry-run] [--continue] [--out ./outdir]
 ```
 
 - Executes the same geocoding pass
-- Inserts or updates matching venues with `barbars=true`
+- Inserts or updates matching venues based on BAN geocoding
 - Produces `out/upserts.csv`, `out/conflicts.csv`, `out/duplicates.csv`, `out/report.json`
 
 Pass `--dry-run` to simulate Supabase writes while still producing the diff reports. No database mutations are performed in dry-run mode.
