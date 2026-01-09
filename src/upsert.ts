@@ -185,7 +185,7 @@ export async function processUpserts(entries: GeocodedEntry[], options: UpsertOp
             city: payload.city,
             latitude: payload.latitude,
             longitude: payload.longitude,
-            barbars: payload.barbars,
+            barbars: payload.barbars ?? false,
           });
         }
         continue;
@@ -243,7 +243,7 @@ export async function processUpserts(entries: GeocodedEntry[], options: UpsertOp
         city: updatePayload.city,
         latitude: updatePayload.latitude,
         longitude: updatePayload.longitude,
-        barbars: updatePayload.barbars,
+        barbars: updatePayload.barbars ?? existing.barbars ?? false,
       });
     } catch (error) {
       errors += 1;
