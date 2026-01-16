@@ -1,8 +1,8 @@
 {
   "mode": "osm:fetch",
-  "city": "Nantes",
+  "city": "Préfecture de police de Paris",
   "country": "FR",
-  "adminLevel": 6,
+  "adminLevel": 5,
   "total": 0,
   "kept": 0,
   "ambiguous": 1,
@@ -15,5 +15,5 @@
   "conflicts": 0,
   "errors": 0,
   "dryRun": true,
-  "timestamp": "2026-01-16T12:35:08.230Z"
+  "timestamp": "2026-01-16T14:30:15.206Z"
 }

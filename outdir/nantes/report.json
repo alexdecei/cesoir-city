@@ -1,0 +1,9 @@
+{
+  "bdd_total": 300,
+  "osm_total": 358,
+  "matched": 101,
+  "ambiguous": 198,
+  "solo_osm": 257,
+  "solo_bdd": 199,
+  "duration_ms": 322
+}

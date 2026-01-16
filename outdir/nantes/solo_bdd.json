@@ -1,0 +1,599 @@
+[
+	{
+		"nom": "19:33 Cocktail Expérience"
+	},
+	{
+		"nom": "4.44 Bar lounge"
+	},
+	{
+		"nom": "40 Pieds Erdre"
+	},
+	{
+		"nom": "A Poele"
+	},
+	{
+		"nom": "Aerofab"
+	},
+	{
+		"nom": "AERoFAB Taproom"
+	},
+	{
+		"nom": "Ak Shelter"
+	},
+	{
+		"nom": "AMAYA Restaurant"
+	},
+	{
+		"nom": "Amenza Restaurant"
+	},
+	{
+		"nom": "Amère"
+	},
+	{
+		"nom": "Aperock Cafe"
+	},
+	{
+		"nom": "Arrosoir"
+	},
+	{
+		"nom": "Ateliers De Bitche"
+	},
+	{
+		"nom": "Ateliers Magellan"
+	},
+	{
+		"nom": "AU PÈRE PEINARD"
+	},
+	{
+		"nom": "Aux Deux Amours"
+	},
+	{
+		"nom": "Aux P’tits Joueurs"
+	},
+	{
+		"nom": "Bakoua"
+	},
+	{
+		"nom": "Balthazar"
+	},
+	{
+		"nom": "Bar Ile"
+	},
+	{
+		"nom": "BARAPOM (Creperie)"
+	},
+	{
+		"nom": "BAROUDEUR (LE)"
+	},
+	{
+		"nom": "Bateau Lavoir"
+	},
+	{
+		"nom": "Bateaux Nantais"
+	},
+	{
+		"nom": "Belle de Jour"
+	},
+	{
+		"nom": "Belle Equipe 1877"
+	},
+	{
+		"nom": "Berlin1989 Biergarten Petit-Port"
+	},
+	{
+		"nom": "Berlin1989 Manufaktur"
+	},
+	{
+		"nom": "Berlin1989 Republik Centrum"
+	},
+	{
+		"nom": "Bibou"
+	},
+	{
+		"nom": "Bieres Et Chopes"
+	},
+	{
+		"nom": "Bistro du Cours"
+	},
+	{
+		"nom": "Bk Biere"
+	},
+	{
+		"nom": "Bla Bla Bar"
+	},
+	{
+		"nom": "Black Shelter"
+	},
+	{
+		"nom": "Bodeguita"
+	},
+	{
+		"nom": "BOITBRUTT & KREPTAR"
+	},
+	{
+		"nom": "Boucan"
+	},
+	{
+		"nom": "Brasserie Nautile"
+	},
+	{
+		"nom": "Broceliande"
+	},
+	{
+		"nom": "BROTHER'S PUB"
+	},
+	{
+		"nom": "Café Charbon"
+	},
+	{
+		"nom": "Cafe De L'ile"
+	},
+	{
+		"nom": "Café de l'industrie"
+	},
+	{
+		"nom": "Cafe De L'orangerie"
+	},
+	{
+		"nom": "Cafe De La Cite"
+	},
+	{
+		"nom": "Cafe Des Cordeliers"
+	},
+	{
+		"nom": "Cafe Du Cinema"
+	},
+	{
+		"nom": "Cafe Du Havre"
+	},
+	{
+		"nom": "Cafe Du Solilab"
+	},
+	{
+		"nom": "Cafe Hourrah"
+	},
+	{
+		"nom": "Cafe Sur Cour"
+	},
+	{
+		"nom": "CafK"
+	},
+	{
+		"nom": "Cale des sous marins"
+	},
+	{
+		"nom": "Cambuse"
+	},
+	{
+		"nom": "CASA Peniche tropicale"
+	},
+	{
+		"nom": "Celestine"
+	},
+	{
+		"nom": "Chapeau Rouge"
+	},
+	{
+		"nom": "Château des ducs de Bretagne"
+	},
+	{
+		"nom": "Chauffe Marcel"
+	},
+	{
+		"nom": "Chez B.b"
+	},
+	{
+		"nom": "Chez La Bretonne"
+	},
+	{
+		"nom": "Chez Les Filles"
+	},
+	{
+		"nom": "Chez Louisette"
+	},
+	{
+		"nom": "Chez Manu"
+	},
+	{
+		"nom": "Chez Marius"
+	},
+	{
+		"nom": "Chez Maurice"
+	},
+	{
+		"nom": "Choc-Hola"
+	},
+	{
+		"nom": "Chope et Compagnie"
+	},
+	{
+		"nom": "Côté plage"
+	},
+	{
+		"nom": "De Dannan Celtic Pub"
+	},
+	{
+		"nom": "DockSide"
+	},
+	{
+		"nom": "Dom Zebulon"
+	},
+	{
+		"nom": "Domtom"
+	},
+	{
+		"nom": "En périphérie"
+	},
+	{
+		"nom": "Etnick"
+	},
+	{
+		"nom": "Fabrik"
+	},
+	{
+		"nom": "Fabrique Bellevue-Chantenay"
+	},
+	{
+		"nom": "Feu Bar"
+	},
+	{
+		"nom": "Five Oh"
+	},
+	{
+		"nom": "Fleming’s Irish Pub"
+	},
+	{
+		"nom": "Gamines Cafe"
+	},
+	{
+		"nom": "Gari Garette"
+	},
+	{
+		"nom": "Gigg’s Irish Pub (Cathédrale)"
+	},
+	{
+		"nom": "Grabuge"
+	},
+	{
+		"nom": "Guindaille"
+	},
+	{
+		"nom": "Hopopop"
+	},
+	{
+		"nom": "Hotel Du Port"
+	},
+	{
+		"nom": "Jeroboam Cote Jardin"
+	},
+	{
+		"nom": "John McByrne"
+	},
+	{
+		"nom": "Joker's PUB"
+	},
+	{
+		"nom": "JYM Bar"
+	},
+	{
+		"nom": "K&B Kitchen & Beverage"
+	},
+	{
+		"nom": "Kaiflo"
+	},
+	{
+		"nom": "Kessecet"
+	},
+	{
+		"nom": "Kiosq"
+	},
+	{
+		"nom": "Kraken"
+	},
+	{
+		"nom": "L'Agronaute"
+	},
+	{
+		"nom": "L’Appart des Anges"
+	},
+	{
+		"nom": "L'enchantier"
+	},
+	{
+		"nom": "L'endroit"
+	},
+	{
+		"nom": "La Barakason"
+	},
+	{
+		"nom": "La Cantine du voyage"
+	},
+	{
+		"nom": "La Carrière"
+	},
+	{
+		"nom": "La Casa"
+	},
+	{
+		"nom": "La Chaumière"
+	},
+	{
+		"nom": "La Comédie des Vins"
+	},
+	{
+		"nom": "La Fabrik à Jeux"
+	},
+	{
+		"nom": "La Forge - Bar Médiéval"
+	},
+	{
+		"nom": "La Générale - Maison du projet de la caserne Mellinet"
+	},
+	{
+		"nom": "La Madrague"
+	},
+	{
+		"nom": "La Muscadetterie"
+	},
+	{
+		"nom": "Labo Diva"
+	},
+	{
+		"nom": "Laloko"
+	},
+	{
+		"nom": "Le 17.45 Nantes"
+	},
+	{
+		"nom": "Le Cercle Rouge"
+	},
+	{
+		"nom": "Le Coq en Pâte"
+	},
+	{
+		"nom": "Le Coup du Lapin"
+	},
+	{
+		"nom": "Le Derriere"
+	},
+	{
+		"nom": "Le Lieu Unique"
+	},
+	{
+		"nom": "Le Maho"
+	},
+	{
+		"nom": "Le Nid"
+	},
+	{
+		"nom": "Le Papillon Bleu"
+	},
+	{
+		"nom": "Le Rabelais"
+	},
+	{
+		"nom": "Le Safe Place"
+	},
+	{
+		"nom": "Le Wattignies"
+	},
+	{
+		"nom": "Le Zygobar"
+	},
+	{
+		"nom": "Les Brassés"
+	},
+	{
+		"nom": "Les Cercles"
+	},
+	{
+		"nom": "Les Impertinant·es"
+	},
+	{
+		"nom": "Les Machines de l'Île"
+	},
+	{
+		"nom": "LevRette Café Nantes"
+	},
+	{
+		"nom": "Levrette Cafe St Nazaire"
+	},
+	{
+		"nom": "Lieu Dit"
+	},
+	{
+		"nom": "Lili Big Café"
+	},
+	{
+		"nom": "Little Atlantique Brewery - LAB"
+	},
+	{
+		"nom": "Loft Club"
+	},
+	{
+		"nom": "LORD'S PUB"
+	},
+	{
+		"nom": "Lovecraft"
+	},
+	{
+		"nom": "Lucciola"
+	},
+	{
+		"nom": "Macallan"
+	},
+	{
+		"nom": "Maestro Mojito Bar"
+	},
+	{
+		"nom": "Magmaa"
+	},
+	{
+		"nom": "Magnum"
+	},
+	{
+		"nom": "Mangouste"
+	},
+	{
+		"nom": "Marietta"
+	},
+	{
+		"nom": "Mashup"
+	},
+	{
+		"nom": "Micro Comedy Club"
+	},
+	{
+		"nom": "Micro Ondes"
+	},
+	{
+		"nom": "Minute Blonde Nantes Reze"
+	},
+	{
+		"nom": "Mixt"
+	},
+	{
+		"nom": "Monsieur Machin"
+	},
+	{
+		"nom": "Monte Cito"
+	},
+	{
+		"nom": "Moody Bar"
+	},
+	{
+		"nom": "Moov Club"
+	},
+	{
+		"nom": "Nantes"
+	},
+	{
+		"nom": "OHM Town"
+	},
+	{
+		"nom": "Oia Club"
+	},
+	{
+		"nom": "Oldegar"
+	},
+	{
+		"nom": "Onyx Atmosphere"
+	},
+	{
+		"nom": "P'tite Case"
+	},
+	{
+		"nom": "Painbar"
+	},
+	{
+		"nom": "Pannonica"
+	},
+	{
+		"nom": "Paradise Prod"
+	},
+	{
+		"nom": "Paws"
+	},
+	{
+		"nom": "PERLE (LA)"
+	},
+	{
+		"nom": "Personnes"
+	},
+	{
+		"nom": "Petit Baigneur"
+	},
+	{
+		"nom": "Petit Cafe"
+	},
+	{
+		"nom": "Petite Cure"
+	},
+	{
+		"nom": "Portevent"
+	},
+	{
+		"nom": "Pouvoir"
+	},
+	{
+		"nom": "Prison Du Bouffay"
+	},
+	{
+		"nom": "R Du Temps"
+	},
+	{
+		"nom": "Relais Du Bac"
+	},
+	{
+		"nom": "Ruin Bar"
+	},
+	{
+		"nom": "SC Club Nantes - Strip Café Club"
+	},
+	{
+		"nom": "Sidras Bar"
+	},
+	{
+		"nom": "Space Shake"
+	},
+	{
+		"nom": "Stereolux"
+	},
+	{
+		"nom": "Sud"
+	},
+	{
+		"nom": "Sur Mesure Bouffay"
+	},
+	{
+		"nom": "Tabarnak"
+	},
+	{
+		"nom": "Tapage"
+	},
+	{
+		"nom": "Tempo"
+	},
+	{
+		"nom": "Terrasse des vents"
+	},
+	{
+		"nom": "Ti Lichous"
+	},
+	{
+		"nom": "Tontons Nageurs"
+	},
+	{
+		"nom": "Transat Cafe"
+	},
+	{
+		"nom": "Trempo"
+	},
+	{
+		"nom": "Trinquette"
+	},
+	{
+		"nom": "TRINQUETTE (LA)"
+	},
+	{
+		"nom": "Univers Café Speakeasy"
+	},
+	{
+		"nom": "V and B Nantes Est"
+	},
+	{
+		"nom": "Voyage Voyage"
+	},
+	{
+		"nom": "Waldeck"
+	},
+	{
+		"nom": "Wax"
+	},
+	{
+		"nom": "ZAW"
+	},
+	{
+		"nom": "Zénith Nantes Métropole"
+	}
+]
