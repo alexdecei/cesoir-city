@@ -2,7 +2,7 @@ import { writeCsv } from '../lib/csv.js';
 import { logger } from '../lib/logger.js';
 import { isSimilarAddress, roundCoord } from '../lib/normalize.js';
 import {
-  findVenueByName,
+  findVenuesByName,
   findVenueByOsm,
   insertVenue,
   updateVenue,
@@ -37,6 +37,7 @@ export interface OsmUpsertOptions {
   dryRun: boolean;
   upsertCsvPath: string;
   conflictCsvPath: string;
+  nowIso: string;
 }
 
 export interface OsmUpsertReport {
@@ -47,9 +48,9 @@ export interface OsmUpsertReport {
   errors: number;
 }
 
-function buildOsmPayload(entry: NormalizedOsmVenue): VenuePayload {
+function buildOsmPayload(entry: NormalizedOsmVenue, nowIso: string): VenuePayload {
   return {
-    ...toVenuePayload(entry),
+    ...toVenuePayload(entry, nowIso),
   };
 }
 
@@ -81,7 +82,7 @@ export async function processOsmUpserts(entries: OsmEntry[], options: OsmUpsertO
     }
 
     try {
-      const payload = buildOsmPayload(entry.venue);
+      const payload = buildOsmPayload(entry.venue, options.nowIso);
       const existingByOsm = await findVenueByOsm(entry.venue.osm_type, entry.venue.osm_id);
 
       if (existingByOsm) {
@@ -94,6 +95,18 @@ export async function processOsmUpserts(entries: OsmEntry[], options: OsmUpsertO
           osm_id: payload.osm_id,
           osm_url: payload.osm_url,
           osm_tags_raw: payload.osm_tags_raw,
+          address: payload.address,
+          contact: payload.contact,
+          osm_venue_type: payload.osm_venue_type,
+          opening_hours: payload.opening_hours,
+          capacity: payload.capacity,
+          live_music: payload.live_music,
+          website: payload.website,
+          phone: payload.phone,
+          instagram: payload.instagram,
+          facebook: payload.facebook,
+          source: payload.source,
+          osm_last_sync_at: payload.osm_last_sync_at,
           tags: existingByOsm.tags && existingByOsm.tags.length > 0 ? undefined : payload.tags,
         };
 
@@ -112,24 +125,24 @@ export async function processOsmUpserts(entries: OsmEntry[], options: OsmUpsertO
         continue;
       }
 
-      const existingByName = await findVenueByName(payload.nom);
-      if (existingByName) {
-        const similarAddress = isSimilarAddress(existingByName.adresse, payload.adresse, {
-          existingCity: existingByName.city,
+      const existingByName = await findVenuesByName(payload.nom);
+      if (existingByName.length > 0) {
+        const matching = existingByName.filter((candidate) => isSimilarAddress(candidate.adresse, payload.adresse, {
+          existingCity: candidate.city,
           candidateCity: payload.city,
           candidatePostcode: entry.venue.postcode ?? undefined,
-        });
-        const nearby = isCloseCoordinates(entry.venue, existingByName);
+        }) && isCloseCoordinates(entry.venue, candidate));
 
-        if (!similarAddress || !nearby) {
+        if (matching.length !== 1) {
           conflicts += 1;
+          const conflictTarget = matching[0] ?? existingByName[0];
           conflictRecords.push({
             nom: payload.nom,
-            existingAdresse: existingByName.adresse,
-            existingCity: existingByName.city,
+            existingAdresse: conflictTarget.adresse,
+            existingCity: conflictTarget.city,
             newAdresse: payload.adresse,
             newCity: payload.city,
-            reason: !similarAddress ? 'name_conflict_address_mismatch' : 'name_conflict_far_distance',
+            reason: matching.length === 0 ? 'name_conflict_address_mismatch' : 'multiple_matches',
           });
           upsertRecords.push({
             action: 'conflict',
@@ -138,13 +151,14 @@ export async function processOsmUpserts(entries: OsmEntry[], options: OsmUpsertO
             city: payload.city,
             latitude: payload.latitude,
             longitude: payload.longitude,
-            reason: !similarAddress ? 'name_conflict_address_mismatch' : 'name_conflict_far_distance',
+            reason: matching.length === 0 ? 'name_conflict_address_mismatch' : 'multiple_matches',
           });
           continue;
         }
 
+        const existing = matching[0];
         if (!options.dryRun) {
-          await updateVenue(existingByName.id, {
+          await updateVenue(existing.id, {
             adresse: payload.adresse,
             city: payload.city,
             latitude: payload.latitude,
@@ -153,7 +167,19 @@ export async function processOsmUpserts(entries: OsmEntry[], options: OsmUpsertO
             osm_id: payload.osm_id,
             osm_url: payload.osm_url,
             osm_tags_raw: payload.osm_tags_raw,
-            tags: existingByName.tags && existingByName.tags.length > 0 ? undefined : payload.tags,
+            address: payload.address,
+            contact: payload.contact,
+            osm_venue_type: payload.osm_venue_type,
+            opening_hours: payload.opening_hours,
+            capacity: payload.capacity,
+            live_music: payload.live_music,
+            website: payload.website,
+            phone: payload.phone,
+            instagram: payload.instagram,
+            facebook: payload.facebook,
+            source: payload.source,
+            osm_last_sync_at: payload.osm_last_sync_at,
+            tags: existing.tags && existing.tags.length > 0 ? undefined : payload.tags,
           });
         }
         updated += 1;

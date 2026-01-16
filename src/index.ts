@@ -259,6 +259,7 @@ async function runOsmFetchCommand(options: {
     apiCalls: summary.stats.apiCalls,
     fromCache: summary.stats.fromCache,
     areaAmbiguous: summary.stats.areaAmbiguous,
+    exportPath: summary.exportPath,
     inserted: 0,
     updated: 0,
     conflicts: 0,
@@ -274,6 +275,7 @@ async function runOsmFetchCommand(options: {
     kept: summary.stats.kept,
     ambiguous: summary.stats.ambiguous,
     apiCalls: summary.stats.apiCalls,
+    exportPath: summary.exportPath,
   }, 'OSM fetch completed');
 }
 
@@ -332,10 +334,12 @@ async function runOsmUpsertCommand(options: {
   const upsertCsvPath = createReportPath(outDir, 'upserts.csv');
   const conflictCsvPath = createReportPath(outDir, 'conflicts.csv');
 
+  const nowIso = new Date().toISOString();
   const upsertReport = await processOsmUpserts(summary.entries, {
     dryRun: options.dryRun ?? false,
     upsertCsvPath,
     conflictCsvPath,
+    nowIso,
   });
 
   const reportPath = createReportPath(outDir, 'report.json');
@@ -350,12 +354,13 @@ async function runOsmUpsertCommand(options: {
     apiCalls: summary.stats.apiCalls,
     fromCache: summary.stats.fromCache,
     areaAmbiguous: summary.stats.areaAmbiguous,
+    exportPath: summary.exportPath,
     inserted: upsertReport.inserted,
     updated: upsertReport.updated,
     conflicts: upsertReport.conflicts,
     errors: upsertReport.errors,
     dryRun: options.dryRun ?? false,
-    timestamp: new Date().toISOString(),
+    timestamp: nowIso,
   };
   await writeReport(reportPath, report);
 
