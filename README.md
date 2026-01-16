@@ -104,7 +104,7 @@ The OSM pipeline emits `venues.db.jsonl` with objects matching the `public.venue
 Use this command to compare existing DB venues without OSM identifiers against the OSM export and produce a SQL patch file (never executed automatically):
 
 ```bash
-npm run osm:homogenize -- --city "Nantes" --in ./out/venues.db.jsonl --out ./out/homogenize --distance-threshold-m 500
+npm run osm:homogenize -- --city "Nantes" --in ./out/venues.db.jsonl --out ./out/homogenize --distance-threshold-m 500 [--all-cities]
 ```
 
 Outputs:
@@ -120,6 +120,7 @@ Notes:
 
 - Matching is name-based with French stopword normalization and a configurable distance threshold.
 - The patch never overwrites non-empty DB fields. (A `--prefer-osm` option is intentionally **not** implemented.)
+- Use `--all-cities` to match all DB venues (no city filter) if your DB city values vary (e.g., Saint Herblain vs Nantes).
 
 ## CSV (BAN) Commands
 

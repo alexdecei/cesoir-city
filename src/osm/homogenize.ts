@@ -24,6 +24,7 @@ export interface HomogenizeOptions {
   inputPath: string;
   outDir: string;
   distanceThresholdM: number;
+  allCities: boolean;
 }
 
 export interface BddVenueRow {
@@ -332,11 +333,16 @@ export async function runHomogenize(options: HomogenizeOptions): Promise<void> {
     .filter((candidate): candidate is OsmCandidate => candidate !== null);
 
   const supabase = ensureClient();
-  const { data, error } = await supabase
+  let query = supabase
     .from('venues')
     .select('id, nom, adresse, city, latitude, longitude, osm_type, osm_id, osm_url, osm_tags_raw, address, contact, osm_venue_type, opening_hours, capacity, live_music, website, phone, facebook, instagram, source')
-    .or('osm_id.is.null,osm_type.is.null')
-    .ilike('city', options.city);
+    .or('osm_id.is.null,osm_type.is.null');
+
+  if (!options.allCities) {
+    query = query.ilike('city', options.city);
+  }
+
+  const { data, error } = await query;
 
   if (error) {
     logger.error({ err: error }, 'Failed to fetch BDD venues');

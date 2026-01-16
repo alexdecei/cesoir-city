@@ -465,11 +465,13 @@ program
   .option('--out <dir>', 'Output directory', DEFAULT_OUTPUT_DIR)
   .option('--distance-threshold-m <value>', 'Distance threshold in meters (default 500)')
   .option('--dry-run', 'No-op flag (homogenize never mutates DB)', true)
+  .option('--all-cities', 'Include all DB venues regardless of city', false)
   .action(async (opts: {
     city: string;
     in: string;
     out?: string;
     distanceThresholdM?: string;
+    allCities?: boolean;
   }) => {
     try {
       const distanceThresholdM = getNumber(opts.distanceThresholdM, 500);
@@ -478,6 +480,7 @@ program
         inputPath: opts.in,
         outDir: path.resolve(opts.out ?? DEFAULT_OUTPUT_DIR),
         distanceThresholdM,
+        allCities: opts.allCities ?? false,
       });
     } catch (error) {
       logger.error({ err: error }, 'OSM homogenize command failed');
