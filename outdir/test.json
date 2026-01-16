@@ -1,0 +1,46 @@
+{
+  "status": "ok",
+  "venue": {
+    "osm_type": "node",
+    "osm_id": 10106435154,
+    "osm_url": "https://www.openstreetmap.org/node/10106435154",
+    "name": "Magmaa Bar",
+    "type": "bar",
+    "latitude": 47.2069618,
+    "longitude": -1.5595081,
+    "adresse": "Nantes",
+    "city": "Nantes",
+    "postcode": null,
+    "address": {
+      "housenumber": null,
+      "street": null,
+      "postcode": null,
+      "city": null,
+      "full": null
+    },
+    "contact": {
+      "website": "https://www.magmaa-nantes.fr/manger-boire/magmaa-bar",
+      "phone": null,
+      "instagram": null,
+      "facebook": null
+    },
+    "opening_hours": "Tu-We 11:00-23:00; Th-Sa 11:00-23:59; Su 11:00-17:00",
+    "capacity": null,
+    "live_music": null,
+    "osm_tags_raw": {
+      "amenity": "bar",
+      "contact:website": "https://www.magmaa-nantes.fr/manger-boire/magmaa-bar",
+      "indoor_seating": "yes",
+      "name": "Magmaa Bar",
+      "opening_hours": "Tu-We 11:00-23:00; Th-Sa 11:00-23:59; Su 11:00-17:00",
+      "outdoor_seating": "patio",
+      "payment:credit_cards": "yes",
+      "payment:debit_cards": "yes",
+      "ref:FR:SIRET": "91418830500017",
+      "survey:date": "2025-05-23",
+      "wheelchair": "yes",
+      "derived_type": "bar",
+      "normalized_name": "magmaa bar"
+    }
+  }
+}
