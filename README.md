@@ -122,6 +122,22 @@ Notes:
 - The patch never overwrites non-empty DB fields. (A `--prefer-osm` option is intentionally **not** implemented.)
 - Use `--all-cities` to match all DB venues (no city filter) if your DB city values vary (e.g., Saint Herblain vs Nantes).
 
+### Name-only matching (manual semantic pairs)
+
+If you have a JSON file with two arrays (`nom_osm`, `nom_bdd`) and want probable pairs based on semantic name similarity (no address/coords), use:
+
+```bash
+npm run osm:match-names -- --in ./out/unmatched_names.json --out ./out/name_matches
+```
+
+Outputs:
+
+- `probable_matches.json` – likely pairs with a similarity score
+- `ambiguous.json` – multiple close matches (manual review)
+- `solo_osm.json` – OSM names with no match
+- `solo_bdd.json` – DB names with no match
+- `report.json` – counts
+
 ## CSV (BAN) Commands
 
 ### Geocode only
