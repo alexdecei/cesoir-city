@@ -99,6 +99,28 @@ The Overpass query includes only the following amenity categories:
 
 The OSM pipeline emits `venues.db.jsonl` with objects matching the `public.venues` columns. Required keys are always present (`nom`, `latitude`, `longitude`, `adresse`, `city`, `source`), and optional keys are only written when values are known (no `null`/`undefined` keys).
 
+### Nantes homogenization (manual matching)
+
+Use this command to compare existing DB venues without OSM identifiers against the OSM export and produce a SQL patch file (never executed automatically):
+
+```bash
+npm run osm:homogenize -- --city "Nantes" --in ./out/venues.db.jsonl --out ./out/homogenize --distance-threshold-m 500
+```
+
+Outputs:
+
+- `matched.json` – pairs with a computed patch that only fills empty DB fields
+- `solo_osm.json` – OSM venues not present in DB
+- `solo_bdd.json` – DB venues without any OSM match
+- `ambiguous.json` – ambiguous matches or distance mismatches (manual review)
+- `homogenize_nantes.sql` – SQL UPDATE statements by `id` (review before applying)
+- `report.json` – counts and timing metrics
+
+Notes:
+
+- Matching is name-based with French stopword normalization and a configurable distance threshold.
+- The patch never overwrites non-empty DB fields. (A `--prefer-osm` option is intentionally **not** implemented.)
+
 ## CSV (BAN) Commands
 
 ### Geocode only
