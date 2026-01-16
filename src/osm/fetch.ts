@@ -249,6 +249,7 @@ export function toVenuePayload(entry: NormalizedOsmVenue, nowIso: string): Venue
   const contact = stripEmpty({ ...entry.contact });
   const parsedCapacity = entry.capacity ? Number.parseInt(entry.capacity, 10) : undefined;
   const capacity = Number.isFinite(parsedCapacity) ? parsedCapacity : undefined;
+  const stripTrailingSlashes = (value?: string): string | undefined => (value ? value.replace(/[\\/]+$/g, '') : undefined);
 
   return stripEmpty({
     nom: entry.name,
@@ -267,10 +268,10 @@ export function toVenuePayload(entry: NormalizedOsmVenue, nowIso: string): Venue
     opening_hours: entry.opening_hours ?? undefined,
     capacity,
     live_music: entry.live_music === 'yes' ? true : entry.live_music === 'no' ? false : undefined,
-    website: entry.contact.website ?? undefined,
+    website: stripTrailingSlashes(entry.contact.website ?? undefined),
     phone: entry.contact.phone ?? undefined,
-    instagram: entry.contact.instagram ?? undefined,
-    facebook: entry.contact.facebook ?? undefined,
+    instagram: stripTrailingSlashes(entry.contact.instagram ?? undefined),
+    facebook: stripTrailingSlashes(entry.contact.facebook ?? undefined),
     source: 'osm_seed',
     osm_last_sync_at: nowIso,
   });

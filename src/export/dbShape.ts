@@ -72,6 +72,13 @@ function parseCapacity(raw?: string | null): number | undefined {
   return Number.isFinite(numeric) && numeric > 0 ? numeric : undefined;
 }
 
+function stripTrailingSlashes(value?: string | null): string | undefined {
+  if (!value) {
+    return undefined;
+  }
+  return value.replace(/[\\/]+$/g, '');
+}
+
 export function toDbVenue(venue: NormalizedOsmVenue, nowIso: string): DbVenueExport {
   const address = stripEmpty({
     housenumber: venue.address.housenumber ?? undefined,
@@ -105,10 +112,10 @@ export function toDbVenue(venue: NormalizedOsmVenue, nowIso: string): DbVenueExp
     opening_hours: venue.opening_hours ?? undefined,
     capacity: parseCapacity(venue.capacity ?? undefined),
     live_music: parseLiveMusic(venue.live_music ?? undefined),
-    instagram: venue.contact.instagram ?? undefined,
-    website: venue.contact.website ?? undefined,
+    instagram: stripTrailingSlashes(venue.contact.instagram ?? undefined),
+    website: stripTrailingSlashes(venue.contact.website ?? undefined),
     phone: venue.contact.phone ?? undefined,
-    facebook: venue.contact.facebook ?? undefined,
+    facebook: stripTrailingSlashes(venue.contact.facebook ?? undefined),
     source: 'osm_seed',
     osm_last_sync_at: nowIso,
   };

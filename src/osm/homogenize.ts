@@ -3,21 +3,7 @@ import path from 'path';
 import { ensureClient } from '../lib/supabase.js';
 import { logger } from '../lib/logger.js';
 import { stripEmpty } from '../export/dbShape.js';
-
-const STOPWORDS = new Set([
-  'le',
-  'la',
-  'les',
-  'l',
-  "l'",
-  'au',
-  'aux',
-  'du',
-  'de',
-  'des',
-  'd',
-  "d'",
-]);
+import { normalizeName } from './nameMatch.js';
 
 export interface HomogenizeOptions {
   city: string;
@@ -100,25 +86,8 @@ export interface HomogenizeReport {
   duration_ms: number;
 }
 
-function normalizeName(input: string): string {
-  const normalized = input
-    .normalize('NFD')
-    .replace(/\p{Diacritic}/gu, '')
-    .toLowerCase()
-    .replace(/[^\p{Letter}\p{Number}]+/gu, ' ')
-    .replace(/\b([ld])\b/g, ' ')
-    .trim();
-
-  if (!normalized) {
-    return '';
-  }
-
-  const tokens = normalized
-    .split(/\s+/)
-    .map((token) => token.trim())
-    .filter((token) => token && !STOPWORDS.has(token));
-
-  return tokens.join(' ').trim();
+function normalizeNameValue(input: string): string {
+  return normalizeName(input).normalized;
 }
 
 function haversineDistanceMeters(lat1: number, lon1: number, lat2: number, lon2: number): number {
@@ -160,6 +129,13 @@ function maybeAddressReplacement(bdd: BddVenueRow, osm: OsmCandidate): string | 
   return undefined;
 }
 
+function stripTrailingSlashes(value?: string | null): string | undefined {
+  if (!value) {
+    return undefined;
+  }
+  return value.replace(/[\\/]+$/g, '');
+}
+
 function buildPatch(bdd: BddVenueRow, osm: OsmCandidate, nowIso: string): Record<string, unknown> {
   const patch: Record<string, unknown> = {};
 
@@ -194,16 +170,16 @@ function buildPatch(bdd: BddVenueRow, osm: OsmCandidate, nowIso: string): Record
     patch.live_music = osm.live_music;
   }
   if (isEmptyValue(bdd.website) && osm.website) {
-    patch.website = osm.website;
+    patch.website = stripTrailingSlashes(osm.website);
   }
   if (isEmptyValue(bdd.phone) && osm.phone) {
     patch.phone = osm.phone;
   }
   if (isEmptyValue(bdd.facebook) && osm.facebook) {
-    patch.facebook = osm.facebook;
+    patch.facebook = stripTrailingSlashes(osm.facebook);
   }
   if (isEmptyValue(bdd.instagram) && osm.instagram) {
-    patch.instagram = osm.instagram;
+    patch.instagram = stripTrailingSlashes(osm.instagram);
   }
 
   const replacementAdresse = maybeAddressReplacement(bdd, osm);
@@ -353,7 +329,7 @@ export async function runHomogenize(options: HomogenizeOptions): Promise<void> {
 
   const osmMap = new Map<string, OsmCandidate[]>();
   for (const osm of osmCandidates) {
-    const normalized = normalizeName(osm.nom);
+    const normalized = normalizeNameValue(osm.nom);
     if (!normalized) {
       continue;
     }
@@ -364,7 +340,7 @@ export async function runHomogenize(options: HomogenizeOptions): Promise<void> {
 
   const bddMap = new Map<string, BddVenueRow[]>();
   for (const bdd of bddVenues) {
-    const normalized = normalizeName(bdd.nom);
+    const normalized = normalizeNameValue(bdd.nom);
     if (!normalized) {
       continue;
     }

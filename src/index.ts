@@ -9,6 +9,7 @@ import { processUpserts } from './upsert.js';
 import { fetchOsmVenues } from './osm/fetch.js';
 import { processOsmUpserts } from './osm/upsert.js';
 import { runHomogenize } from './osm/homogenize.js';
+import { runMatchNames } from './osm/matchNames.js';
 
 dotenv.config();
 
@@ -484,6 +485,22 @@ program
       });
     } catch (error) {
       logger.error({ err: error }, 'OSM homogenize command failed');
+      process.exitCode = 1;
+    }
+  });
+
+program
+  .command('osm:match-names')
+  .requiredOption('--in <path>', 'Path to JSON with nom_osm/nom_bdd arrays')
+  .option('--out <dir>', 'Output directory', DEFAULT_OUTPUT_DIR)
+  .action(async (opts: { in: string; out?: string }) => {
+    try {
+      await runMatchNames({
+        inputPath: opts.in,
+        outDir: path.resolve(opts.out ?? DEFAULT_OUTPUT_DIR),
+      });
+    } catch (error) {
+      logger.error({ err: error }, 'OSM match-names command failed');
       process.exitCode = 1;
     }
   });
