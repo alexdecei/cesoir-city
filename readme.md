@@ -31,42 +31,55 @@ Outputs are written to `./out` by default (customisable via `--out`).
 
 ## OSM schema migration (required)
 
-The OSM pipeline stores OSM identity and tags. Apply the migration below before running `osm:run`:
+The OSM pipeline stores OSM identity, metadata, and export fields. Apply the migration below before running `osm:run`:
 
 ```sql
 alter table public.venues
   add column if not exists osm_type text,
   add column if not exists osm_id bigint,
   add column if not exists osm_url text,
-  add column if not exists osm_tags_raw jsonb;
+  add column if not exists osm_tags_raw jsonb,
+  add column if not exists address jsonb,
+  add column if not exists contact jsonb,
+  add column if not exists osm_venue_type text,
+  add column if not exists opening_hours text,
+  add column if not exists capacity integer,
+  add column if not exists live_music boolean,
+  add column if not exists website text,
+  add column if not exists phone text,
+  add column if not exists facebook text,
+  add column if not exists source text not null default 'manual',
+  add column if not exists osm_last_sync_at timestamptz;
 
 create unique index if not exists venues_osm_unique on public.venues(osm_type, osm_id);
+alter table public.venues drop constraint if exists venues_nom_key;
+create index if not exists venues_nom_idx on public.venues(nom);
 ```
 
 A copy of this migration is included in `migrations/2024-09-22-add-osm-columns.sql`.
+The migration also removes the unique constraint on `nom` and replaces it with a simple index.
 
 ## OSM Commands (Overpass)
 
 ### Fetch only (cache + review)
 
 ```bash
-npm run osm:fetch -- --city "Paris" --country FR --admin-level 8 --out ./outdir [--continue]
+npx tsx src/index.ts osm:fetch -- --city "Paris" --country FR --admin-level 8 --out ./outdir [--continue]
 ```
 
 - Fetches nightlife/event venues from OSM inside the city administrative area.
-- Produces `out/osm_fetched.jsonl`, `out/ambiguous.csv`, `out/report.json`.
+- Produces `out/osm_cache.jsonl`, `out/venues.db.jsonl`, `out/ambiguous.csv`, `out/ambiguous_areas.csv`, `out/report.json`.
 - Never writes to Supabase.
 
 ### Fetch + upsert
 
 ```bash
-npm run osm:run -- --city "Paris" --country FR --admin-level 8 --out ./outdir [--continue] [--dry-run]
+npx tsx src/index.ts osm:run -- --city "Paris" --country FR --admin-level 8 --out ./outdir [--continue] [--dry-run]
 ```
 
 - Runs the same Overpass fetch pipeline.
 - Upserts into Supabase by `(osm_type, osm_id)`.
-- Does not set any extra flags; it only fills OSM identity + location data.
-- Produces `out/upserts.csv`, `out/conflicts.csv`, `out/report.json`.
+- Produces `out/venues.db.jsonl`, `out/upserts.csv`, `out/conflicts.csv`, `out/report.json`.
 
 ### OSM filters
 
@@ -81,6 +94,10 @@ The Overpass query includes only the following amenity categories:
 - `amenity=community_centre`
 - `amenity=concert_hall`
 - `amenity=events_venue`
+
+### OSM export shape
+
+The OSM pipeline emits `venues.db.jsonl` with objects matching the `public.venues` columns. Required keys are always present (`nom`, `latitude`, `longitude`, `adresse`, `city`, `source`), and optional keys are only written when values are known (no `null`/`undefined` keys).
 
 ## CSV (BAN) Commands
 
@@ -112,8 +129,10 @@ Pass `--dry-run` to simulate Supabase writes while still producing the diff repo
 
 ### OSM
 
-- `osm_fetched.jsonl` – cache of normalized OSM venues (used for `--continue`)
+- `osm_cache.jsonl` – cache of normalized OSM venues (used for `--continue`)
+- `venues.db.jsonl` – export in the same shape as `public.venues` columns (no null/undefined keys)
 - `ambiguous.csv` – venues missing name/coordinates or ambiguous area matches
+- `ambiguous_areas.csv` – alternate area matches when multiple admin relations are found
 - `upserts.csv` – summary of insert/update/conflict/error outcomes (only for `osm:run`)
 - `conflicts.csv` – name conflicts where the address/coords disagree
 - `report.json` – aggregated metrics (API usage, inserts, updates, conflicts, etc.)
