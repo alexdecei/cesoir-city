@@ -8,6 +8,7 @@ import { logger } from './lib/logger.js';
 import { processUpserts } from './upsert.js';
 import { fetchOsmVenues } from './osm/fetch.js';
 import { processOsmUpserts } from './osm/upsert.js';
+import { runHomogenize } from './osm/homogenize.js';
 
 dotenv.config();
 
@@ -453,6 +454,33 @@ program
       await runOsmUpsertCommand(opts);
     } catch (error) {
       logger.error({ err: error }, 'OSM run command failed');
+      process.exitCode = 1;
+    }
+  });
+
+program
+  .command('osm:homogenize')
+  .option('--city <name>', 'City name to homogenize', 'Nantes')
+  .requiredOption('--in <path>', 'Path to OSM export file (db-shaped or OSM-normalized)')
+  .option('--out <dir>', 'Output directory', DEFAULT_OUTPUT_DIR)
+  .option('--distance-threshold-m <value>', 'Distance threshold in meters (default 500)')
+  .option('--dry-run', 'No-op flag (homogenize never mutates DB)', true)
+  .action(async (opts: {
+    city: string;
+    in: string;
+    out?: string;
+    distanceThresholdM?: string;
+  }) => {
+    try {
+      const distanceThresholdM = getNumber(opts.distanceThresholdM, 500);
+      await runHomogenize({
+        city: opts.city,
+        inputPath: opts.in,
+        outDir: path.resolve(opts.out ?? DEFAULT_OUTPUT_DIR),
+        distanceThresholdM,
+      });
+    } catch (error) {
+      logger.error({ err: error }, 'OSM homogenize command failed');
       process.exitCode = 1;
     }
   });
