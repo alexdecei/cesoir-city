@@ -1,18 +1,18 @@
 {
   "mode": "osm:fetch",
-  "city": "Saint-herblain",
+  "city": "Paris",
   "country": "FR",
   "adminLevel": 8,
-  "total": 310,
-  "kept": 308,
-  "ambiguous": 2,
+  "total": 2178,
+  "kept": 2161,
+  "ambiguous": 17,
   "apiCalls": 0,
-  "fromCache": 310,
+  "fromCache": 2178,
   "areaAmbiguous": false,
   "inserted": 0,
   "updated": 0,
   "conflicts": 0,
   "errors": 0,
   "dryRun": true,
-  "timestamp": "2026-01-16T11:22:17.444Z"
+  "timestamp": "2026-01-09T16:51:30.952Z"
 }
