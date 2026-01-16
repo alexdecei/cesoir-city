@@ -26,10 +26,27 @@ export interface VenuePayload {
   longitude: number;
   image_url?: string;
   tags?: string[];
+  description?: string;
+  event_max?: number;
+  programmation?: string;
+  lastchecked?: string;
+  plan?: string;
+  instagram?: string;
+  website?: string;
+  phone?: string;
+  facebook?: string;
   osm_type?: string;
   osm_id?: number;
   osm_url?: string;
   osm_tags_raw?: Record<string, unknown>;
+  address?: Record<string, unknown>;
+  contact?: Record<string, unknown>;
+  osm_venue_type?: string;
+  opening_hours?: string;
+  capacity?: number;
+  live_music?: boolean;
+  source?: string;
+  osm_last_sync_at?: string;
 }
 
 let client: SupabaseClient | null = null;
@@ -61,21 +78,20 @@ function stripUndefined<T extends Record<string, unknown>>(payload: T): T {
   return Object.fromEntries(Object.entries(payload).filter(([, value]) => value !== undefined)) as T;
 }
 
-export async function findVenueByName(nom: string): Promise<VenueRow | null> {
+export async function findVenuesByName(nom: string): Promise<VenueRow[]> {
   const supabase = ensureClient();
   const { data, error } = await supabase
     .from('venues')
     .select('*')
     .ilike('nom', nom)
-    .limit(1)
-    .maybeSingle<VenueRow>();
+    .limit(10);
 
   if (error) {
-    logger.error({ err: error }, 'Supabase findVenueByName failed');
+    logger.error({ err: error }, 'Supabase findVenuesByName failed');
     throw error;
   }
 
-  return data ?? null;
+  return data ?? [];
 }
 
 export async function findVenueByOsm(osmType: string, osmId: number): Promise<VenueRow | null> {

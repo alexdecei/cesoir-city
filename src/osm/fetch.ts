@@ -3,15 +3,18 @@ import path from 'path';
 import readline from 'readline';
 import { writeCsv } from '../lib/csv.js';
 import { logger } from '../lib/logger.js';
+import { writeDbExport } from '../export/dbShape.js';
 import { normalizeOsmElement } from './normalize.js';
 import {
   createOverpassLimiter,
-  findAdminArea,
   buildVenueQuery,
   fetchOverpass,
   OSM_AMENITIES,
 } from './overpass.js';
+import { findAdminArea, writeAmbiguousAreas } from './area.js';
 import { NormalizedOsmVenue, OsmEntry } from './types.js';
+import { VenuePayload } from '../lib/supabase.js';
+import { stripEmpty } from '../export/dbShape.js';
 
 export interface OsmFetchOptions {
   city: string;
@@ -35,6 +38,7 @@ export interface OsmFetchStats {
 export interface OsmFetchResult {
   entries: OsmEntry[];
   stats: OsmFetchStats;
+  exportPath: string;
 }
 
 interface AmbiguousRecord extends Record<string, unknown> {
@@ -74,8 +78,11 @@ function createCacheWriter(filePath: string): (entry: OsmEntry) => Promise<void>
 }
 
 export async function fetchOsmVenues(options: OsmFetchOptions): Promise<OsmFetchResult> {
-  const cachePath = path.join(options.outDir, 'osm_fetched.jsonl');
+  const cachePath = path.join(options.outDir, 'osm_cache.jsonl');
   const ambiguousPath = path.join(options.outDir, 'ambiguous.csv');
+  const ambiguousAreasPath = path.join(options.outDir, 'ambiguous_areas.csv');
+  const exportPath = path.join(options.outDir, 'venues.db.jsonl');
+  const nowIso = new Date().toISOString();
 
   if (options.useCache) {
     try {
@@ -96,6 +103,12 @@ export async function fetchOsmVenues(options: OsmFetchOptions): Promise<OsmFetch
         await fs.rm(ambiguousPath, { force: true });
       }
 
+      const cachedVenues = cached
+        .filter((entry) => entry.status === 'ok' && entry.venue)
+        .map((entry) => entry.venue as NormalizedOsmVenue);
+
+      await writeDbExport(cachedVenues, exportPath, nowIso);
+
       return {
         entries: cached,
         stats: {
@@ -106,6 +119,7 @@ export async function fetchOsmVenues(options: OsmFetchOptions): Promise<OsmFetch
           apiCalls: 0,
           areaAmbiguous: false,
         },
+        exportPath,
       };
     } catch (error) {
       logger.warn({ err: error }, 'Cache file not available, fetching from Overpass');
@@ -140,6 +154,7 @@ export async function fetchOsmVenues(options: OsmFetchOptions): Promise<OsmFetch
         apiCalls: 1,
         areaAmbiguous: false,
       },
+      exportPath,
     };
   }
 
@@ -148,6 +163,9 @@ export async function fetchOsmVenues(options: OsmFetchOptions): Promise<OsmFetch
       reason: 'area_ambiguous',
       details: `Multiple administrative areas matched for ${options.city}: ${areaResult.candidates.map((c) => c.name).join(', ')}`,
     });
+    await writeAmbiguousAreas(ambiguousAreasPath, areaResult.candidates);
+  } else {
+    await fs.rm(ambiguousAreasPath, { force: true });
   }
 
   logger.info({ areaId: areaResult.areaId, adminLevel: options.adminLevel }, 'Resolved OSM area');
@@ -206,6 +224,12 @@ export async function fetchOsmVenues(options: OsmFetchOptions): Promise<OsmFetch
   const kept = entries.filter((entry) => entry.status === 'ok').length;
   const ambiguous = ambiguousRecords.length;
 
+  const venues = entries
+    .filter((entry) => entry.status === 'ok' && entry.venue)
+    .map((entry) => entry.venue as NormalizedOsmVenue);
+
+  await writeDbExport(venues, exportPath, nowIso);
+
   return {
     entries,
     stats: {
@@ -216,22 +240,17 @@ export async function fetchOsmVenues(options: OsmFetchOptions): Promise<OsmFetch
       apiCalls,
       areaAmbiguous: areaResult.ambiguous,
     },
+    exportPath,
   };
 }
 
-export function toVenuePayload(entry: NormalizedOsmVenue): {
-  nom: string;
-  adresse: string;
-  city: string;
-  latitude: number;
-  longitude: number;
-  tags?: string[];
-  osm_type: string;
-  osm_id: number;
-  osm_url: string;
-  osm_tags_raw: Record<string, string | undefined>;
-} {
-  return {
+export function toVenuePayload(entry: NormalizedOsmVenue, nowIso: string): VenuePayload {
+  const address = stripEmpty({ ...entry.address });
+  const contact = stripEmpty({ ...entry.contact });
+  const parsedCapacity = entry.capacity ? Number.parseInt(entry.capacity, 10) : undefined;
+  const capacity = Number.isFinite(parsedCapacity) ? parsedCapacity : undefined;
+
+  return stripEmpty({
     nom: entry.name,
     adresse: entry.adresse,
     city: entry.city,
@@ -242,5 +261,17 @@ export function toVenuePayload(entry: NormalizedOsmVenue): {
     osm_id: entry.osm_id,
     osm_url: entry.osm_url,
     osm_tags_raw: entry.osm_tags_raw,
-  };
+    address: Object.keys(address).length > 0 ? address : undefined,
+    contact: Object.keys(contact).length > 0 ? contact : undefined,
+    osm_venue_type: entry.type,
+    opening_hours: entry.opening_hours ?? undefined,
+    capacity,
+    live_music: entry.live_music === 'yes' ? true : entry.live_music === 'no' ? false : undefined,
+    website: entry.contact.website ?? undefined,
+    phone: entry.contact.phone ?? undefined,
+    instagram: entry.contact.instagram ?? undefined,
+    facebook: entry.contact.facebook ?? undefined,
+    source: 'osm_seed',
+    osm_last_sync_at: nowIso,
+  });
 }

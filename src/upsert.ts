@@ -3,7 +3,7 @@ import { logger } from './lib/logger.js';
 import { isSimilarAddress, isSimilarName, normalizeAddress, roundCoord } from './lib/normalize.js';
 import {
   findVenueByCity,
-  findVenueByName,
+  findVenuesByName,
   insertVenue,
   updateVenue,
   VenuePayload,
@@ -128,9 +128,9 @@ export async function processUpserts(entries: GeocodedEntry[], options: UpsertOp
 
     try {
       const payload = buildVenuePayload(entry);
-      const existing = await findVenueByName(entry.input.nom);
+      const existingCandidates = await findVenuesByName(entry.input.nom);
 
-      if (!existing) {
+      if (existingCandidates.length === 0) {
         const candidates = await getCityVenues(payload.city);
         const normalizedPayloadAddress = normalizeAddress(payload.adresse);
         const duplicate = candidates.find((candidate) => {
@@ -189,18 +189,19 @@ export async function processUpserts(entries: GeocodedEntry[], options: UpsertOp
         continue;
       }
 
-      const similar = compareWithExisting(existing, entry);
+      const similarMatches = existingCandidates.filter((candidate) => compareWithExisting(candidate, entry));
 
-      if (!similar) {
+      if (similarMatches.length !== 1) {
         conflicts += 1;
         const newAdresse = payload.adresse;
+        const conflictTarget = similarMatches[0] ?? existingCandidates[0];
         conflictRecords.push({
           nom: payload.nom,
-          existingAdresse: existing.adresse,
-          existingCity: existing.city,
+          existingAdresse: conflictTarget.adresse,
+          existingCity: conflictTarget.city,
           newAdresse,
           newCity: payload.city,
-          reason: 'address_mismatch',
+          reason: similarMatches.length === 0 ? 'address_mismatch' : 'multiple_matches',
         });
         upsertRecords.push({
           action: 'conflict',
@@ -209,11 +210,12 @@ export async function processUpserts(entries: GeocodedEntry[], options: UpsertOp
           city: payload.city,
           latitude: payload.latitude,
           longitude: payload.longitude,
-          reason: 'address_mismatch',
+          reason: similarMatches.length === 0 ? 'address_mismatch' : 'multiple_matches',
         });
         continue;
       }
 
+      const existing = similarMatches[0];
       const updatePayload: Omit<VenuePayload, 'nom'> = {
         adresse: payload.adresse,
         city: payload.city,
