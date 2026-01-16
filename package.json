@@ -1,0 +1,32 @@
+{
+  "name": "cesoir-city-tools",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "geocode": "tsx src/index.ts geocode",
+    "run": "tsx src/index.ts run",
+    "osm:fetch": "tsx src/index.ts osm:fetch",
+    "osm:run": "tsx src/index.ts osm:run",
+    "osm:homogenize": "tsx src/index.ts osm:homogenize",
+    "osm:match-names": "tsx src/index.ts osm:match-names",
+    "osm:prepare-inserts": "tsx src/index.ts osm:prepare-inserts",
+    "osm:resolve-missing": "tsx src/index.ts osm:resolve-missing"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.43.4",
+    "cli-progress": "^3.12.0",
+    "commander": "^11.1.0",
+    "csv-parse": "^5.5.3",
+    "csv-stringify": "^6.4.6",
+    "dotenv": "^16.3.1",
+    "p-limit": "^4.0.0",
+    "pino": "^9.3.2"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.30",
+    "tsx": "^4.7.1",
+    "typescript": "^5.4.5"
+  }
+}
