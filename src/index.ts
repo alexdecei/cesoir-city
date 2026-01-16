@@ -6,6 +6,8 @@ import cliProgress from 'cli-progress';
 import { geocodeFile } from './geocode.js';
 import { logger } from './lib/logger.js';
 import { processUpserts } from './upsert.js';
+import { fetchOsmVenues } from './osm/fetch.js';
+import { processOsmUpserts } from './osm/upsert.js';
 
 dotenv.config();
 
@@ -195,6 +197,179 @@ async function runUpsertCommand(input: string, options: { dryRun?: boolean; cont
   }, 'Upsert completed');
 }
 
+async function runOsmFetchCommand(options: {
+  city: string;
+  country?: string;
+  adminLevel?: string;
+  out?: string;
+  continue?: boolean;
+  concurrency?: string;
+}): Promise<void> {
+  const outDir = path.resolve(options.out ?? DEFAULT_OUTPUT_DIR);
+  await ensureDirectory(outDir);
+
+  const adminLevel = getNumber(options.adminLevel, 8);
+  const concurrency = getNumber(options.concurrency, getNumber(process.env.OVERPASS_CONCURRENCY, 1));
+
+  logger.info(
+    {
+      city: options.city,
+      country: options.country,
+      adminLevel,
+      outDir,
+      concurrency,
+      reuseCache: options.continue ?? false,
+    },
+    'Running OSM fetch command',
+  );
+
+  const progressBar = new cliProgress.SingleBar({ clearOnComplete: true }, cliProgress.Presets.shades_classic);
+  let progressStarted = false;
+
+  const summary = await fetchOsmVenues({
+    city: options.city,
+    country: options.country,
+    adminLevel,
+    outDir,
+    useCache: options.continue ?? false,
+    concurrency,
+    onProgress: (processed, total) => {
+      if (!progressStarted) {
+        progressBar.start(total, processed);
+        progressStarted = true;
+      } else {
+        progressBar.update(processed);
+      }
+    },
+  });
+
+  if (progressStarted) {
+    progressBar.stop();
+  }
+
+  const reportPath = createReportPath(outDir, 'report.json');
+  const report = {
+    mode: 'osm:fetch',
+    city: options.city,
+    country: options.country,
+    adminLevel,
+    total: summary.stats.total,
+    kept: summary.stats.kept,
+    ambiguous: summary.stats.ambiguous,
+    apiCalls: summary.stats.apiCalls,
+    fromCache: summary.stats.fromCache,
+    areaAmbiguous: summary.stats.areaAmbiguous,
+    inserted: 0,
+    updated: 0,
+    conflicts: 0,
+    errors: 0,
+    dryRun: true,
+    timestamp: new Date().toISOString(),
+  };
+  await writeReport(reportPath, report);
+
+  logger.info({
+    city: options.city,
+    total: summary.stats.total,
+    kept: summary.stats.kept,
+    ambiguous: summary.stats.ambiguous,
+    apiCalls: summary.stats.apiCalls,
+  }, 'OSM fetch completed');
+}
+
+async function runOsmUpsertCommand(options: {
+  city: string;
+  country?: string;
+  adminLevel?: string;
+  out?: string;
+  continue?: boolean;
+  concurrency?: string;
+  dryRun?: boolean;
+}): Promise<void> {
+  const outDir = path.resolve(options.out ?? DEFAULT_OUTPUT_DIR);
+  await ensureDirectory(outDir);
+
+  const adminLevel = getNumber(options.adminLevel, 8);
+  const concurrency = getNumber(options.concurrency, getNumber(process.env.OVERPASS_CONCURRENCY, 1));
+
+  logger.info(
+    {
+      city: options.city,
+      country: options.country,
+      adminLevel,
+      outDir,
+      concurrency,
+      reuseCache: options.continue ?? false,
+      dryRun: options.dryRun ?? false,
+    },
+    'Running OSM upsert command',
+  );
+
+  const progressBar = new cliProgress.SingleBar({ clearOnComplete: true }, cliProgress.Presets.shades_classic);
+  let progressStarted = false;
+
+  const summary = await fetchOsmVenues({
+    city: options.city,
+    country: options.country,
+    adminLevel,
+    outDir,
+    useCache: options.continue ?? false,
+    concurrency,
+    onProgress: (processed, total) => {
+      if (!progressStarted) {
+        progressBar.start(total, processed);
+        progressStarted = true;
+      } else {
+        progressBar.update(processed);
+      }
+    },
+  });
+
+  if (progressStarted) {
+    progressBar.stop();
+  }
+
+  const upsertCsvPath = createReportPath(outDir, 'upserts.csv');
+  const conflictCsvPath = createReportPath(outDir, 'conflicts.csv');
+
+  const upsertReport = await processOsmUpserts(summary.entries, {
+    dryRun: options.dryRun ?? false,
+    upsertCsvPath,
+    conflictCsvPath,
+  });
+
+  const reportPath = createReportPath(outDir, 'report.json');
+  const report = {
+    mode: 'osm:run',
+    city: options.city,
+    country: options.country,
+    adminLevel,
+    total: summary.stats.total,
+    kept: summary.stats.kept,
+    ambiguous: summary.stats.ambiguous,
+    apiCalls: summary.stats.apiCalls,
+    fromCache: summary.stats.fromCache,
+    areaAmbiguous: summary.stats.areaAmbiguous,
+    inserted: upsertReport.inserted,
+    updated: upsertReport.updated,
+    conflicts: upsertReport.conflicts,
+    errors: upsertReport.errors,
+    dryRun: options.dryRun ?? false,
+    timestamp: new Date().toISOString(),
+  };
+  await writeReport(reportPath, report);
+
+  logger.info({
+    city: options.city,
+    dryRun: options.dryRun ?? false,
+    total: summary.stats.total,
+    inserted: upsertReport.inserted,
+    updated: upsertReport.updated,
+    conflicts: upsertReport.conflicts,
+    errors: upsertReport.errors,
+  }, 'OSM upsert completed');
+}
+
 const program = new Command();
 program
   .name('venues-tool')
@@ -208,7 +383,7 @@ program
   .option('--score-min <value>', 'Minimum BAN score to accept (default from env)')
   .option('--concurrency <value>', 'Maximum concurrent BAN requests (default from env)')
   .option('--dry-run', 'No-op flag (geocode mode is always dry-run)')
-  .action(async (input, opts) => {
+  .action(async (input: string, opts: { continue?: boolean; out?: string; scoreMin?: string; concurrency?: string }) => {
     try {
       await runGeocodeCommand(input, opts);
     } catch (error) {
@@ -225,11 +400,54 @@ program
   .option('--out <dir>', 'Output directory', DEFAULT_OUTPUT_DIR)
   .option('--score-min <value>', 'Minimum BAN score to accept (default from env)')
   .option('--concurrency <value>', 'Maximum concurrent BAN requests (default from env)')
-  .action(async (input, opts) => {
+  .action(async (input: string, opts: { dryRun?: boolean; continue?: boolean; out?: string; scoreMin?: string; concurrency?: string }) => {
     try {
       await runUpsertCommand(input, opts);
     } catch (error) {
       logger.error({ err: error }, 'Run command failed');
+      process.exitCode = 1;
+    }
+  });
+
+program
+  .command('osm:fetch')
+  .requiredOption('--city <name>', 'City name to fetch from OSM')
+  .option('--country <code>', 'Country ISO3166-1 code', 'FR')
+  .option('--admin-level <level>', 'Administrative level (default 8)')
+  .option('--continue', 'Reuse local OSM cache', false)
+  .option('--out <dir>', 'Output directory', DEFAULT_OUTPUT_DIR)
+  .option('--concurrency <value>', 'Maximum concurrent Overpass requests (default from env)')
+  .action(async (opts: { city: string; country?: string; adminLevel?: string; out?: string; continue?: boolean; concurrency?: string }) => {
+    try {
+      await runOsmFetchCommand(opts);
+    } catch (error) {
+      logger.error({ err: error }, 'OSM fetch command failed');
+      process.exitCode = 1;
+    }
+  });
+
+program
+  .command('osm:run')
+  .requiredOption('--city <name>', 'City name to fetch from OSM')
+  .option('--country <code>', 'Country ISO3166-1 code', 'FR')
+  .option('--admin-level <level>', 'Administrative level (default 8)')
+  .option('--dry-run', 'Skip database writes', false)
+  .option('--continue', 'Reuse local OSM cache', false)
+  .option('--out <dir>', 'Output directory', DEFAULT_OUTPUT_DIR)
+  .option('--concurrency <value>', 'Maximum concurrent Overpass requests (default from env)')
+  .action(async (opts: {
+    city: string;
+    country?: string;
+    adminLevel?: string;
+    dryRun?: boolean;
+    out?: string;
+    continue?: boolean;
+    concurrency?: string;
+  }) => {
+    try {
+      await runOsmUpsertCommand(opts);
+    } catch (error) {
+      logger.error({ err: error }, 'OSM run command failed');
       process.exitCode = 1;
     }
   });

@@ -6,7 +6,9 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "geocode": "tsx src/index.ts geocode",
-    "run": "tsx src/index.ts run"
+    "run": "tsx src/index.ts run",
+    "osm:fetch": "tsx src/index.ts osm:fetch",
+    "osm:run": "tsx src/index.ts osm:run"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.43.4",
