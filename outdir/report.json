@@ -1,0 +1,19 @@
+{
+  "mode": "osm:fetch",
+  "city": "Nantes",
+  "country": "FR",
+  "adminLevel": 6,
+  "total": 0,
+  "kept": 0,
+  "ambiguous": 1,
+  "apiCalls": 1,
+  "fromCache": 0,
+  "areaAmbiguous": false,
+  "exportPath": "C:\\Users\\decei\\OneDrive\\Bureau\\Prod\\projets\\cesoir\\Repos\\cesoir-city\\outdir\\venues.db.jsonl",
+  "inserted": 0,
+  "updated": 0,
+  "conflicts": 0,
+  "errors": 0,
+  "dryRun": true,
+  "timestamp": "2026-01-16T12:35:08.230Z"
+}
