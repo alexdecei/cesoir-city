@@ -138,6 +138,19 @@ Outputs:
 - `solo_bdd.json` – DB names with no match
 - `report.json` – counts
 
+### Prepare SQL inserts for new OSM venues
+
+If you have new OSM venues in `./out/new_venues/venues.db.jsonl` and want an SQL script to insert them:
+
+```bash
+npm run osm:prepare-inserts -- --in ./out/new_venues/venues.db.jsonl --out ./out/new_venues
+```
+
+Outputs:
+
+- `insert_new_venues.sql` – INSERT statements for `public.venues` (no `id` field)
+- `report.json` – counts of input vs prepared rows
+
 ## CSV (BAN) Commands
 
 ### Geocode only

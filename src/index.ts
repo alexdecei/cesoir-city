@@ -10,6 +10,7 @@ import { fetchOsmVenues } from './osm/fetch.js';
 import { processOsmUpserts } from './osm/upsert.js';
 import { runHomogenize } from './osm/homogenize.js';
 import { runMatchNames } from './osm/matchNames.js';
+import { runPrepareInserts } from './osm/prepareInserts.js';
 
 dotenv.config();
 
@@ -501,6 +502,22 @@ program
       });
     } catch (error) {
       logger.error({ err: error }, 'OSM match-names command failed');
+      process.exitCode = 1;
+    }
+  });
+
+program
+  .command('osm:prepare-inserts')
+  .requiredOption('--in <path>', 'Path to OSM export file (db-shaped JSON/JSONL)')
+  .option('--out <dir>', 'Output directory', DEFAULT_OUTPUT_DIR)
+  .action(async (opts: { in: string; out?: string }) => {
+    try {
+      await runPrepareInserts({
+        inputPath: opts.in,
+        outDir: path.resolve(opts.out ?? DEFAULT_OUTPUT_DIR),
+      });
+    } catch (error) {
+      logger.error({ err: error }, 'OSM prepare-inserts command failed');
       process.exitCode = 1;
     }
   });
