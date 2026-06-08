@@ -1,8 +1,8 @@
 {
   "mode": "osm:fetch",
-  "city": "Préfecture de police de Paris",
+  "city": "Angers",
   "country": "FR",
-  "adminLevel": 5,
+  "adminLevel": 6,
   "total": 0,
   "kept": 0,
   "ambiguous": 1,
@@ -15,5 +15,5 @@
   "conflicts": 0,
   "errors": 0,
   "dryRun": true,
-  "timestamp": "2026-01-16T14:30:15.206Z"
+  "timestamp": "2026-01-16T14:49:09.606Z"
 }
